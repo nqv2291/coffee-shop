@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,5 +20,11 @@
   "bugs": {
     "url": "https://github.com/nqv2291/coffee-shop/issues"
   },
-  "homepage": "https://github.com/nqv2291/coffee-shop#readme"
+  "homepage": "https://github.com/nqv2291/coffee-shop#readme",
+  "dependencies": {
+    "express": "^4.18.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.18"
+  }
 }
