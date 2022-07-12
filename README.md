@@ -1,22 +1,22 @@
 # Install the following dependencies for the project:
 
-NPM:
+**NPM**:
     npm install --global typescript
     
-express:
+**express**:
     npm install express
     
-nodemon:
+**nodemon**:
     npm install nodemon --save-dev
     
-morgan:
+**morgan**:
     npm install morgan --save-dev
     
-express-handlebars:
+**express-handlebars**:
     npm install express-handlebars
     
-preprocessor scss:
+**preprocessor scss**:
     npm install node-sass --save-dev
     
-SQL server config:
+**SQL server config**:
     npm install mssql msnodesqlv8
