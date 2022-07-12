@@ -14,7 +14,7 @@ GO
 
 CREATE TABLE Product (
     productID CHAR(6) NOT NULL,
-    name VARCHAR(20) NOT NULL,
+    name VARCHAR(30) NOT NULL,
     description varchar(1000),
     image VARCHAR(150),
     rating FLOAT,
@@ -30,7 +30,7 @@ GO
 
 CREATE TABLE ProductItem (
     productID CHAR(6) NOT NULL,
-    size INT NOT NULL,
+    size VARCHAR(20) NOT NULL,
     quantity INT,
     price FLOAT,
 
@@ -74,3 +74,11 @@ VALUES  ('CFE000', 'Coffee', NULL),
         ('CKE003', 'Party Cakes', 'CKE000'),
         ('CKE004', 'Midnight Cakes', 'CKE000')
 GO
+
+-- CREATE PROCEDURE addNewProduct
+-- @name VARCHAR(30), @description VARCHAR(1000), @image VARCHAR(150), @rating FLOAT, @categoryID CHAR(6)
+-- AS BEGIN
+--     INSERT INTO Product (name, description, image, rating, categoryID)
+--     VALUES (@name, @description, @image, @rating, @categoryID)
+-- END
+-- GO
