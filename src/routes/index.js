@@ -1,10 +1,29 @@
 const {conn, sql} = require('../config/database');
 
 function route(app) {
-    app.get('/', (req, res) => {
-      res.render('home');
+    app.get('/', async (req, res) => {
+      // http://localhost:3000/
+      var pool = await conn;
+      var sqlString = "EXEC getProductGeneralInfo";
+      return await pool.request().query(sqlString, function(err, data) {
+        if (data.recordset != undefined) {
+          res.send(data);
+        }
+      });
+      
+    });    
+ 
+    app.get('/:id', async (req, res) => {
+      // eg: http://localhost:3000/COFT01P01
+      var id =  req.params.id;
+      var pool = await conn;
+      var sqlString = "EXEC getAllProductGeneralInfoByID '" + id + "'";
+      return await pool.request().query(sqlString, function(err, data) {
+        res.send(data.recordset);
+      });
     });
     
+    /*
     app.get('/collections', async (req, res) => {
       // SELECT * FROM Category
       // --> get all information in Category table
@@ -27,7 +46,7 @@ function route(app) {
       });
     });
 
-    /*
+    
     // Other testing routes
     app.get('/admin', (req, res) => {
       // INSERT INTO customer VALUES (username, password, fullname, phone email, address)
