@@ -112,7 +112,6 @@ GO
 CREATE PROC getAllProductGeneralInfoByID
 @productID CHAR(9)
 AS
-SELECT *
 SELECT p.productID, p.name, i.price, i.size, c.parentID
 FROM Category c JOIN Product p ON c.categoryID = p.categoryID
 	 JOIN ProductItem i ON p.productID = i.productID
