@@ -123,19 +123,50 @@ VALUES  ('COFT01P01', '12oz', 15, 17.00),
 		('TEAT02P01', '10oz', 12, 45.00)
 GO
 
+INSERT INTO Customer (username, password, fullname, address, phone, email)
+VALUES  ('nqv2291', 'fakecustomer', N'Việt Ngô', N'001 Đại Cồ Việt, phường Bách Khoa, quận Hai Bà Trưng, thành phố Hà Nội, Việt Nam', '5555555555', 'nviet@gmail.com'),
+        ('ngobaobin123', 'anotherfake', N'Ngô Bảo Bin', N'91 Chùa Láng, phường Láng Thượng, quận Đống Đa, thành phố Hà Nội, Việt Nam', '0918273645', 'ngobaobin123@mail.com' )
+GO
+
+-- username VARCHAR(30) NOT NULL,
+--     password VARCHAR(30) NOT NULL,
+--     fullname NVARCHAR(100) NOT NULL,
+--     address NVARCHAR(150) NOT NULL,
+--     phone CHAR(10) NOT NULL,
+--     email VARCHAR(100) NOT NULL,
+
 -- create procedures
-CREATE PROC getAllProductGeneralInfoByID
+CREATE PROC getProductByID
 @productID CHAR(9)
 AS
-SELECT p.productID, p.name, i.price, i.size, c.parentID
+SELECT p.productID, p.name, p.description, p.image, i.price, i.size, c.parentID
 FROM Category c JOIN Product p ON c.categoryID = p.categoryID
 	 JOIN ProductItem i ON p.productID = i.productID
 WHERE p.productID = @productID
 GO
 
-CREATE PROC getProductGeneralInfo AS
-SELECT p.productID, p.name, i.price, i.size, c.parentID
+CREATE PROC getAllProducts AS
+SELECT p.productID, p.name, p.image, i.price, i.size, c.parentID
 FROM Category c JOIN Product p ON c.categoryID = p.categoryID
 	 JOIN ProductItem i ON p.productID = i.productID
+GO
 
+CREATE PROC getCustomerLoginInfo
+@username CHAR(30), @password CHAR(30)
+AS
+SELECT * FROM Customer WHERE username = @username AND password = @password
+GO
+
+CREATE PROC insertCustomerInfo
+@username CHAR(30), @password CHAR(30), @fullname NVARCHAR(100), @address NVARCHAR(150), @phone CHAR(10), @email VARCHAR(100)
+AS
+INSERT INTO Customer (username, password, fullname, address, phone, email)
+VALUES (@username, @password, @fullname, @address, @phone, @email)
+GO
+
+-- call procedures
+-- EXEC getProductByID 'COFT01P01'
+-- EXEC getAllProducts
+-- EXEC getCustomerLoginInfo 'nqv2291', 'fakecustomer'
+-- EXEC insertCustomerInfo 'harryhart', 'smbidkhehe', N'Mr. Harry Hart', N'54 Liễu Giai, phường Cống Vị, quận Ba Đình, thành phố Hà Nội, Việt Nam', '0987654321', 'hhart@yahoo.com'
 
