@@ -42,15 +42,18 @@ function route(app) {
       var username = req.body.username;
       var password = req.body.password;
       var pool = await conn;
-      var sqlString = "EXEC getCustomerLoginInfo '" + username + "', '" + password + "'";
-      return await pool.request().query(sqlString, function(err, data) {
+      var sqlString = "EXEC getCustomerLoginInfo @username, @password";
+      return await pool.request()
+      .input('username', sql.VarChar, username)
+      .input('password', sql.VarChar, password)
+      .query(sqlString, function(err, data) {
         if (data.recordset != undefined) {
           res.send(data.recordset);
         }
       });
     });
 
-    app.post('/register', async (req, res) => {
+    app.post('/reg', async (req, res) => {
       // http://localhost:3000/register
       var username = req.body.username;
       var password = req.body.password;
@@ -60,9 +63,15 @@ function route(app) {
       var email = req.body.email;
 
       var pool = await conn;
-      var sqlString = "EXEC insertCustomerInfo '" + username + "', '" + password + "'" + ", '" 
-                      + fullname + "'" + ", '" + address + "'" + ", '" + phone + "'" + ", '" + email + "'";
-      return await pool.request().query(sqlString, function(err, data) {
+      var sqlString = "insertCustomerInfo @username, @password, @fullname, @address, @phone, @email";
+      return await pool.request()
+      .input("username", sql.VarChar, username)
+      .input("password", sql.VarChar, password)
+      .input("fullname", sql.NVarChar, fullname)
+      .input("address", sql.NVarChar, address)
+      .input("phone", sql.VarChar, phone)
+      .input("email", sql.VarChar, email)
+      .query(sqlString, function(err, data) {
         if (data.recordset != undefined) {
           res.send(data.recordset);
         }
