@@ -21,15 +21,7 @@ function route(app) {
       var sqlString = "EXEC getProductByID '" + id + "'";
       return await pool.request().query(sqlString, function(err, data) {
         if (data.recordset.at(0) != undefined) {
-          var rawData = data.recordset.at(0)["image"];
-          var data = rawData.replace(/^data:image\/png;base64,/, '');
-          var img = Buffer.from(data, 'base64');
-
-          res.writeHead(200, {
-            'Content-Type': 'image/png',
-            'Content-Length': img.length
-          });
-          res.end(img);
+          res.send(data.recordset.at(0)["image"]);
 
         } else {
           res.send("No image found");
