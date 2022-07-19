@@ -1,3 +1,4 @@
+const { MAX } = require('mssql');
 const { conn, sql } = require('../config/database');
 
 
@@ -17,12 +18,14 @@ function route(app) {
 
   app.get('/:id', async (req, res) => {
     // eg: http://localhost:3000/COFT01P01
-    var id = req.params.id;
+    var id =  req.params.id;
     var pool = await conn;
-    var sqlString = "EXEC getProductByID '" + id + "'";
-    return await pool.request().query(sqlString, function (err, data) {
+    var sqlString = "SELECT image FROM Product WHERE ProductID = '" + id + "'";
+    return await pool.request().query(sqlString, function(err, data) {
       if (data.recordset.at(0) != undefined) {
-        res.send(data.recordset.at(0)["image"]);
+        var rawData = data.recordset.at(0)["image"];
+        var data = rawData.replace(/^data:image\/png;base64,/, '');
+        var img = Buffer.from(data, 'base64');
 
         res.writeHead(200, {
           'Content-Type': 'image/png',
@@ -36,14 +39,16 @@ function route(app) {
     });
   });
 
-  app.post('/add_prod', async (req, res) => {
+  app.post('/addProduct', async (req, res) => {
     var pool = await conn;
-    var sqlString = "INSERT INTO Product (productID, categoryID, name, description, price, quantity) VALUES ('COFT01P07', 'COFT01', @name, @description, @price, @quantity)";
+    var sqlString = "EXEC insertProductInfo @categoryID, @name, @description, @image, @quantity, @price";
     return await pool.request()
-      .input('name', sql.VarChar, req.body.name)
-      .input('description', sql.VarChar, req.body.description)
-      .input('price', sql.VarChar, req.body.price)
-      .input('quantity', sql.VarChar, req.body.quantity)
+      .input('categoryID', sql.Char(6), req.body.categoryID)
+      .input('name', sql.NVarChar(30), req.body.name)
+      .input('description', sql.NVarChar(MAX), req.body.description)
+      .input('image', sql.VarChar(MAX), req.body.image)
+      .input('quantity', sql.Int, req.body.quantity)
+      .input('price', sql.Decimal(10, 2), req.body.price)
       .query(sqlString, function (err, data) {
         res.json(req.body);
       })

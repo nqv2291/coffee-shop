@@ -1,46 +1,46 @@
-<form action="/add_prod" method="post">
+<form action="/addProduct" method="post">
     <div class="mb-3">
         <label for="inputProductName" class="form-label">Product name</label>
         <input name="name" type="text" placeholder="Name" class="form-control" id="inputProductName" required>
     </div>
     <div class="mb-3">
         <label for="inputCategory" class="form-label">Category</label>
-        <select name="category" class="form-select" aria-label="Default select example">
+        <select name="parentID" class="form-select">
             <option selected>Choose category</option>
-            <option value="1">Coffee</option>
-            <option value="2">Tea</option>
-            <option value="3">Cake</option>
+            <option value="COFT00">Coffee</option>
+            <option value="TEAT00">Tea</option>
+            <option value="CAKT00">Cake</option>
         </select>
     </div>
     <div class="mb-3">
-        <label for="inputSize" class="form-label">Size</label>
-        <input name="size" class="form-control" list="sizeListOptions" id="inputSize" placeholder="Choose product size">
-        <datalist id="sizeListOptions">
-            <option value="8 Oz">
-            <option value="10 Oz">
-            <option value="12 Oz">
-        </datalist>
+        <label for="inputCategory" class="form-label">Type</label>
+        <select name="categoryID" class="form-select">
+            <option selected>Choose type</option>
+            <option value="COFT01">Coffee (COFT01)</option>
+            <option value="TEAT01">Tea (TEAT01)</option>
+            <option value="CAKT01">Cake (CAKT01)</option>
+        </select>
     </div>
     <div class="mb-3">
         <label for="inputQuantity" class="form-label">Quantity</label>
-        <input name="quantity" type="text" class="form-control" id="inputQuantity">
+        <input name="quantity" type="text" class="form-control" id="inputQuantity" required>
     </div>
     <div class="mb-3">
         <label for="inputPrice" class="form-label">Price</label>
         <div class="input-group mb-3">
             <span class="input-group-text">$</span>
-            <input name="price" type="text" class="form-control" id="inputPrice">
+            <input name="price" type="text" class="form-control" id="inputPrice" required>
         </div>
     </div>
     <div class="mb-3">
         <label for="loadImage" class="form-label">Upload image</label>
         <div class="input-group mb-3">
-            <input name="image" type="file" class="form-control" id="loadImage">
+            <input name="image" type="file" class="form-control" id="loadImage" required>
         </div>
     </div>
     <div class="mb-3">
         <label for="inputDescription" class="form-label">Description</label>
-        <textarea name="description" class="form-control" id="inputDescription" rows="3"></textarea>
+        <textarea name="description" class="form-control" id="inputDescription" rows="3" required></textarea>
     </div>
 
     <button type="submit" class="btn btn-primary">Submit</button>
