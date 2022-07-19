@@ -232,6 +232,18 @@ GO
 
 -- CREATE PROC insertNewOrderUserInfo
 -- CREATE PROC insertNewOrderCustomInfo
+DROP PROC insertProductTest
+GO
+CREATE PROC insertProductTest
+@categoryID CHAR(6), @name VARCHAR(30), @description VARCHAR(MAX), @image VARCHAR(100), @quantity INT, @price FLOAT
+AS
+DECLARE @nbProduct INT
+SET @nbProduct = (SELECT COUNT(*) FROM Product WHERE categoryID = @categoryID) + 1
+INSERT INTO Product (productID, categoryID, name, description, image, quantity, price)
+VALUES (CONCAT(@categoryID, 'P', RIGHT(100+ @nbProduct,2)), @categoryID, @name, @description, @image, @quantity, @price)
+GO
+-- nếu xóa 1 product thì cập nhật kiểu gì?
+-- thêm 1 cột isdeleted vào product
 
 
 
