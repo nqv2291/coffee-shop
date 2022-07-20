@@ -82,7 +82,7 @@ function route(app) {
       .input("phone", sql.Char(10), req.body.phone)
       .input("email", sql.VarChar(100), req.body.email)
       .query(sqlString, function (err, data) {
-        res.json(req.body);
+        res.json(data.recordset);
       });
   });
 }
