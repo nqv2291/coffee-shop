@@ -57,13 +57,11 @@ function route(app) {
 
   app.post('/login', async (req, res) => {
     // http://localhost:3000/login
-    var username = req.body.username;
-    var password = req.body.password;
     var pool = await conn;
     var sqlString = "EXEC getCustomerLoginInfo @username, @password";
     return await pool.request()
-      .input('username', sql.VarChar, username)
-      .input('password', sql.VarChar, password)
+      .input('username', sql.VarChar(30), req.body.username)
+      .input('password', sql.VarChar(30), req.body.password)
       .query(sqlString, function (err, data) {
         if (data.recordset != undefined) {
           res.send(data.recordset);
@@ -72,28 +70,19 @@ function route(app) {
   });
 
 
-  app.post('/reg', async (req, res) => {
+  app.post('/register', async (req, res) => {
     // http://localhost:3000/register
-    var username = req.body.username;
-    var password = req.body.password;
-    var fullname = req.body.fullname;
-    var address = req.body.address;
-    var phone = req.body.phone;
-    var email = req.body.email;
-
     var pool = await conn;
-    var sqlString = "insertCustomerInfo @username, @password, @fullname, @address, @phone, @email";
+    var sqlString = "EXEC insertNewCustomer @username, @password, @fullname, @address, @phone, @email";
     return await pool.request()
-      .input("username", sql.VarChar, username)
-      .input("password", sql.VarChar, password)
-      .input("fullname", sql.NVarChar, fullname)
-      .input("address", sql.NVarChar, address)
-      .input("phone", sql.VarChar, phone)
-      .input("email", sql.VarChar, email)
+      .input("username", sql.VarChar(30), req.body.username)
+      .input("password", sql.VarChar(30), req.body.password)
+      .input("fullname", sql.NVarChar(100), req.body.fullname)
+      .input("address", sql.NVarChar(150), req.body.address)
+      .input("phone", sql.Char(10), req.body.phone)
+      .input("email", sql.VarChar(100), req.body.email)
       .query(sqlString, function (err, data) {
-        if (data.recordset != undefined) {
-          res.send(data.recordset);
-        }
+        res.json(req.body);
       });
   });
 }
