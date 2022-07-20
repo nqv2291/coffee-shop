@@ -41,7 +41,7 @@ function route(app) {
 
   app.post('/addProduct', async (req, res) => {
     var pool = await conn;
-    var sqlString = "EXEC insertProductInfo @categoryID, @name, @description, @image, @quantity, @price";
+    var sqlString = "EXEC insertNewProduct @categoryID, @name, @description, @image, @quantity, @price";
     return await pool.request()
       .input('categoryID', sql.Char(6), req.body.categoryID)
       .input('name', sql.NVarChar(30), req.body.name)
@@ -50,7 +50,7 @@ function route(app) {
       .input('quantity', sql.Int, req.body.quantity)
       .input('price', sql.Decimal(10, 2), req.body.price)
       .query(sqlString, function (err, data) {
-        res.json(req.body);
+        res.json(data.recordset);
       })
     res.redirect('/');
   });
