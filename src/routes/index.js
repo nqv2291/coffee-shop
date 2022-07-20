@@ -18,25 +18,26 @@ function route(app) {
 
   app.get('/:id', async (req, res) => {
     // eg: http://localhost:3000/COFT01P01
-    var id =  req.params.id;
     var pool = await conn;
-    var sqlString = "SELECT image FROM Product WHERE ProductID = '" + id + "'";
-    return await pool.request().query(sqlString, function(err, data) {
-      if (data.recordset.at(0) != undefined) {
-        var rawData = data.recordset.at(0)["image"];
-        var data = rawData.replace(/^data:image\/png;base64,/, '');
-        var img = Buffer.from(data, 'base64');
+    var sqlString = "EXEC getProductByID @productID";
+    return await pool.request()
+      .input('productID', sql.Char(9), req.params.id)
+      .query(sqlString, function(err, data) {
+        if (data.recordset.at(0) != undefined) {
+          var rawData = data.recordset.at(0)["image"];
+          var data = rawData.replace(/^data:image\/png;base64,/, '');
+          var img = Buffer.from(data, 'base64');
 
-        res.writeHead(200, {
-          'Content-Type': 'image/png',
-          'Content-Length': img.length
-        });
-        res.end(img);
+          res.writeHead(200, {
+            'Content-Type': 'image/png',
+            'Content-Length': img.length
+          });
+          res.end(img);
 
-      } else {
-        res.send("No image found");
-      }
-    });
+        } else {
+          res.send("No image found");
+        }
+      });
   });
 
   app.post('/addProduct', async (req, res) => {
