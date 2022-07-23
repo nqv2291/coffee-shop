@@ -3,9 +3,9 @@ const { conn, sql } = require('../config/database');
 
 
 function route(app) {
+
   app.get('/', (req, res) => {
     // http://localhost:3000/
-
     res.render('home');
 
   });
@@ -22,7 +22,7 @@ function route(app) {
     var sqlString = "EXEC getProductByID @productID";
     return await pool.request()
       .input('productID', sql.Char(9), req.params.id)
-      .query(sqlString, function(err, data) {
+      .query(sqlString, function (err, data) {
         if (data.recordset.at(0) != undefined) {
           var rawData = data.recordset.at(0)["image"];
           var data = rawData.replace(/^data:image\/png;base64,/, '');
@@ -40,10 +40,33 @@ function route(app) {
       });
   });
 
+  app.post('/addOrder', async (req, res) => {
+    var pool = await conn;
+    var sqlString = "EXEC insertNewOrderUserInfo @username, @message, @totalPayment";
+    var sqlData = "EXEC insertNewOrderItem @orderID, @productID, @quantity, @totalPrice";
+
+    const requestInfos = req.body.data?.map(function (data) {
+      pool.request()
+        .input('orderID', sql.Int, data.orderID)
+        .input('productID', sql.Char(9), data.productID)
+        .input('quantity', sql.Int, data.quantity)
+        .input('totalPrice', sql.Int, data.totalPrice)
+        .query(sqlData);
+    });
+    const request = await pool.request()
+      .input('username', sql.VarChar(30), req.body.username)
+      .input('message', sql.NVarChar(1000), req.body.message)
+      .input('totalPayment', sql.Decimal(10, 2), req.body.totalPayment)
+      .query(sqlString, function (err, data) {
+        res.json(data.recordset);
+      });
+
+  });
+
   app.post('/addProduct', async (req, res) => {
     var pool = await conn;
     var sqlString = "EXEC insertNewProduct @categoryID, @name, @description, @image, @quantity, @price";
-    return await pool.request()
+    const request = await pool.request()
       .input('categoryID', sql.Char(6), req.body.categoryID)
       .input('name', sql.NVarChar(30), req.body.name)
       .input('description', sql.NVarChar(MAX), req.body.description)
@@ -53,7 +76,6 @@ function route(app) {
       .query(sqlString, function (err, data) {
         res.json(data.recordset);
       })
-    res.redirect('/');
   });
 
   app.post('/login', async (req, res) => {
