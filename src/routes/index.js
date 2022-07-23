@@ -45,21 +45,23 @@ function route(app) {
     var sqlString = "EXEC insertNewOrderUserInfo @username, @message, @totalPayment";
     var sqlData = "EXEC insertNewOrderItem @orderID, @productID, @quantity, @totalPrice";
 
+    const request = await pool.request()
+      .input('username', sql.VarChar(30), req.body.username)
+      .input('message', sql.NVarChar(1000), req.body.message)
+      .input('totalPayment', sql.Decimal(10, 2), req.body.totalPayment)
+      .query(sqlString);
+
     const requestInfos = req.body.data?.map(function (data) {
       pool.request()
         .input('orderID', sql.Int, data.orderID)
         .input('productID', sql.Char(9), data.productID)
         .input('quantity', sql.Int, data.quantity)
         .input('totalPrice', sql.Int, data.totalPrice)
-        .query(sqlData);
+        .query(sqlData, function (err, data) {
+          res.json(data.recordset);
+        });
     });
-    const request = await pool.request()
-      .input('username', sql.VarChar(30), req.body.username)
-      .input('message', sql.NVarChar(1000), req.body.message)
-      .input('totalPayment', sql.Decimal(10, 2), req.body.totalPayment)
-      .query(sqlString, function (err, data) {
-        res.json(data.recordset);
-      });
+    
 
   });
 
