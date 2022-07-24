@@ -22,7 +22,7 @@ GO
 CREATE TABLE Product (
     productID CHAR(9) NOT NULL,
     categoryID CHAR(6) NOT NULL,
-    name NVARCHAR(30) NOT NULL,
+    name NVARCHAR(50) NOT NULL,
     description NVARCHAR(MAX),
     image VARCHAR(MAX),
     quantity INT NOT NULL,
