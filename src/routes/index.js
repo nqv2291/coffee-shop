@@ -65,6 +65,16 @@ function route(app) {
 
   });
 
+  app.post('/getProductType', async (req, res) => {
+    var pool = await conn;
+    var sqlString = "EXEC getTypeByCategory @parentID";
+    const request = await pool.request()
+      .input('parentID', sql.Char(6), req.body.id)
+      .query(sqlString, function (err, data) {
+        res.json(data.recordset);
+      })
+  });
+
   app.post('/addProduct', async (req, res) => {
     var pool = await conn;
     var sqlString = "EXEC insertNewProduct @categoryID, @name, @description, @image, @quantity, @price";
