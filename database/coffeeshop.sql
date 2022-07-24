@@ -148,7 +148,7 @@ FROM vwProductCategory
 GO
 
 CREATE PROC insertNewProduct
-@categoryID CHAR(6), @name VARCHAR(30), @description VARCHAR(MAX), @image VARCHAR(MAX), @quantity INT, @price DECIMAL(10,2)
+@categoryID CHAR(6), @name NVARCHAR(50), @description VARCHAR(MAX), @image VARCHAR(MAX), @quantity INT, @price DECIMAL(10,2)
 AS
 BEGIN
 	DECLARE @nbProduct INT

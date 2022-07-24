@@ -80,7 +80,7 @@ function route(app) {
     var sqlString = "EXEC insertNewProduct @categoryID, @name, @description, @image, @quantity, @price";
     const request = await pool.request()
       .input('categoryID', sql.Char(6), req.body.categoryID)
-      .input('name', sql.NVarChar(30), req.body.name)
+      .input('name', sql.NVarChar(50), req.body.name)
       .input('description', sql.NVarChar(MAX), req.body.description)
       .input('image', sql.VarChar(MAX), req.body.image)
       .input('quantity', sql.Int, req.body.quantity)
