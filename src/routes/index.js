@@ -42,23 +42,18 @@ function route(app) {
 
   app.post('/addOrder', async (req, res) => {
     var pool = await conn;
-    var getOrderID;
     var sqlString = "EXEC insertNewOrderUserInfo @username, @message, @totalPayment";
     var sqlData = "EXEC insertNewOrderItem @orderID, @productID, @quantity, @totalPrice";
 
-    const request = pool.request()
+    const request = await pool.request()
       .input('username', sql.VarChar(30), req.body.username)
       .input('message', sql.NVarChar(1000), req.body.message)
       .input('totalPayment', sql.Decimal(10, 2), req.body.totalPayment)
-      .query(sqlString, function (err, data) {
-        if (data.recordset.at(0) != undefined) {
-          getOrderID = data.recordset.at(0)["orderID"];
-        }
-      });
+      .query(sqlString);
 
-    const requestInfos = req.body.data?.map(function (Data) {
+    const requestInfos = await req.body.data?.map(function (Data) {
       pool.request()
-        .input('orderID', sql.Int, getOrderID)
+        .input('orderID', sql.Int, request.recordset.at(0)["orderID"])
         .input('productID', sql.Char(9), Data.productID)
         .input('quantity', sql.Int, Data.quantity)
         .input('totalPrice', sql.Int, Data.totalPrice)
@@ -66,6 +61,7 @@ function route(app) {
           res.json(data.recordset);
         });
     });
+    return;
   });
 
   app.post('/getProductType', async (req, res) => {
