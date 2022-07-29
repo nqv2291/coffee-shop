@@ -4,6 +4,64 @@ const { conn, sql } = require('../config/database');
 
 function route(app) {
 
+
+  app.post('/addOrder', async (req, res) => {
+    var pool = await conn;
+    var sqlMakeOrder = "EXEC insertNewOrder @username, @message, @totalPayment, @fullname, @address, @phone, @email";
+    var sqlAddData = "EXEC insertNewOrderItem @orderItemID, @orderID, @productID, @quantity, @totalPrice";
+
+    const insertNewOrder = await pool.request()
+      .input('username', sql.VarChar(30), req.body.username)
+      .input('message', sql.NVarChar(1000), req.body.message)
+      .input('totalPayment', sql.Decimal(10, 2), req.body.totalPayment)
+      .input('fullname', sql.NVarChar(100), req.body.fullname)
+      .input('address', sql.NVarChar(150), req.body.address)
+      .input('phone', sql.Char(10), req.body.phone)
+      .input('email', sql.VarChar(100), req.body.email)
+      .query(sqlMakeOrder);
+
+    const insertOrderInfo = await req.body.data?.map(function (Data) {
+      pool.request()
+        .input('orderItemID', sql.Int, parseInt(insertNewOrder.recordset.at(0)["baseOrderItemID"]) +  parseInt(Data.cartID))
+        .input('orderID', sql.Int, insertNewOrder.recordset.at(0)["orderID"])
+        .input('productID', sql.Char(9), Data.productID)
+        .input('quantity', sql.Int, Data.quantity)
+        .input('totalPrice', sql.Decimal(10, 2), Data.totalPrice)
+        .query(sqlAddData, function (err, data) {
+          console.log(data.recordset);
+          res.json(data.recordset);
+        });
+    });
+  });
+
+  app.get('/manageOrder', async (req, res) => {
+    var pool = await conn;
+    var sqlUpdateOrderStatus = "SELECT orderID, username, orderDate, totalPayment, orderStatus FROM Orders";
+    
+    const updateOrderStatus = await pool.request()
+      .query(sqlUpdateOrderStatus, function (err, data) {
+        console.log(data.recordset);
+        // res.json(data.recordset);
+      });
+  });
+
+  app.post('/manageOrder', async (req, res) => {
+    var pool = await conn;
+    var sqlUpdateOrderStatus = "EXEC updateOrderStatus @orderID, @status";
+    
+    const updateOrderStatus = await pool.request()
+      .input('orderID', sql.Int, req.body.orderID)
+      .input('status', sql.VarChar(20), req.body.status)
+      .query(sqlUpdateOrderStatus, function (err, data) {
+        console.log(data.recordset);
+        // res.json(data.recordset);
+      });
+  });
+
+
+
+
+
   app.get('/', (req, res) => {
     // http://localhost:3000/
     res.render('home');
@@ -38,31 +96,6 @@ function route(app) {
           res.send("No image found");
         }
       });
-  });
-
-  app.post('/addOrder', async (req, res) => {
-    var pool = await conn;
-    var sqlString = "EXEC insertNewOrderUserInfo @username, @message, @totalPayment";
-    var sqlData = "EXEC insertNewOrderItem @orderID, @productID, @quantity, @totalPrice";
-
-    const request = await pool.request()
-      .input('username', sql.VarChar(30), req.body.username)
-      .input('message', sql.NVarChar(1000), req.body.message)
-      .input('totalPayment', sql.Decimal(10, 2), req.body.totalPayment)
-      .query(sqlString);
-
-    const requestInfos = req.body.data?.map(function (data) {
-      pool.request()
-        .input('orderID', sql.Int, data.orderID)
-        .input('productID', sql.Char(9), data.productID)
-        .input('quantity', sql.Int, data.quantity)
-        .input('totalPrice', sql.Int, data.totalPrice)
-        .query(sqlData, function (err, data) {
-          res.json(data.recordset);
-        });
-    });
-    
-
   });
 
   app.post('/getProductType', async (req, res) => {

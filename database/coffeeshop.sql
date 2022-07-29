@@ -116,6 +116,9 @@ CREATE TABLE Review (
 )
 GO
 
+ALTER TABLE Orders
+ADD CONSTRAINT Orders_chk_Status CHECK (orderStatus IN ('processing', 'completed', 'cancelled'))
+GO
 
 -------------------------------------------------------------------------------
 -- CREATE VIEW
@@ -132,7 +135,7 @@ GO
 -- CREATE PROCEDURE & FUNCTION
 -------------------------------------------------------------------------------
 
--- Products
+-- Products--------------------------------------------------------------------
 CREATE PROC getProductByID
 @productID CHAR(9)
 AS
@@ -147,28 +150,8 @@ SELECT productID, productName, image, quantity, price, rating, categoryID, categ
 FROM vwProductCategory
 GO
 
-CREATE PROC insertNewProduct
-@categoryID CHAR(6), @name NVARCHAR(50), @description VARCHAR(MAX), @image VARCHAR(MAX), @quantity INT, @price DECIMAL(10,2)
-AS
-BEGIN
-	DECLARE @nbProduct INT
-	SET @nbProduct = (SELECT COUNT(*) FROM Product WHERE categoryID = @categoryID) + 1;
-	
-	BEGIN TRY  
-		INSERT INTO Product (productID, categoryID, name, description, image, quantity, price)
-		VALUES (CONCAT(@categoryID, 'P', RIGHT(100+ @nbProduct,2)), @categoryID, @name, @description, @image, @quantity, @price);
-		IF @@ROWCOUNT = 0
-			THROW 50000, 'Failed insert new product', 1;
-		SELECT 'success' AS message, '0' AS errCode;
-	END TRY  
-	BEGIN CATCH  
-		SELECT 'fail' AS message, '1' AS errCode; 
-	END CATCH;
-END
-GO
 
-
--- Customers
+-- Customers-------------------------------------------------------------------
 CREATE PROC getCustomerLoginInfo
 @username CHAR(30), @password CHAR(30)
 AS
@@ -200,69 +183,33 @@ BEGIN
 END
 GO
 
--- CREATE PROC getAllCustomerInfo
--- AS
--- SELECT username, fullname, address, phone, email FROM Customer
--- GO
-
--- CREATE PROC getCustomerInfoByUsername
--- @username CHAR(30)
--- AS
--- SELECT username, fullname, address, phone, email FROM Customer WHERE username = @username
--- GO
-
-
-
-
--- Orders
--- CREATE PROC getAllOrders
--- AS
--- SELECT * FROM Orders
--- GO
-
--- CREATE PROC getAllOrderByUsername
--- @username CHAR(30)
--- AS
--- SELECT * FROM Orders WHERE username = @username
--- GO
-
--- CREATE PROC getOrderDetailByID
--- @orderID INT
--- AS
--- SELECT * 
--- FROM Orders o JOIN OrderItem i ON o.orderID = i.orderID
---      JOIN Product p ON i.productID = p.productID
--- WHERE o.orderID = @orderID
--- GO
-
-CREATE PROC insertNewOrderUserInfo
-@username VARCHAR(30), @message NVARCHAR(1000), @totalPayment DECIMAL(10, 2)
+CREATE PROC insertNewOrder
+@username VARCHAR(30), @message NVARCHAR(1000), @totalPayment DECIMAL(10, 2),
+@fullname NVARCHAR(100), @address NVARCHAR(150), @phone CHAR(10), @email VARCHAR(100)
 AS
 BEGIN
     DECLARE @orderID INT;
     SET @orderID = (SELECT COUNT(*) FROM Orders) + 1;
 
     INSERT INTO Orders (orderID, username, orderFullname, orderAddress, orderPhone, orderEmail, orderMessage, orderDate, totalPayment)
-    SELECT @orderID, username, fullname, address, phone, email, @message, GETDATE(), @totalPayment
-    FROM Customer WHERE username = @username;
+    VALUES (@orderID, @username, @fullname, @address, @phone, @email, @message, GETDATE(), @totalPayment)
 
-    SELECT @orderID AS orderID;
+    SELECT @orderID AS orderID, (COUNT(*) + 1) AS baseOrderItemID
+	FROM OrderItem;
 END
 GO
 
-
-
 CREATE PROC insertNewOrderItem
-@orderID INT, @productID CHAR(9), @quantity INT, @totalPrice DECIMAL(10, 2)
+@orderItemID INT, @orderID INT, @productID CHAR(9), @quantity INT, @totalPrice DECIMAL(10, 2)
 AS
 BEGIN
 	BEGIN TRANSACTION
-	DECLARE @orderItemID INT;
-    SET @orderItemID = (SELECT COUNT(*) FROM OrderItem) + 1;
 	BEGIN TRY
+
 		INSERT INTO OrderItem
 		VALUES (@orderItemID, @orderID, @productID, @quantity, @totalPrice);
 
+		
 		UPDATE Product
 		SET quantity = quantity - @quantity
 		WHERE productID = @productID;
@@ -276,21 +223,61 @@ BEGIN
 			END
 		ELSE
 			BEGIN
-				IF (SELECT totalPayment FROM Orders WHERE orderID = @orderID) < (SELECT SUM(totalPrice) FROM OrderItem WHERE orderID = @orderID)
-					BEGIN
-						SELECT 'incorrect total price of product' AS message, '2' AS errCode;
-						ROLLBACK
-					END
-				ELSE
-					BEGIN
-						SELECT 'success' AS message, '0' AS errCode;
-						COMMIT TRANSACTION
-					END
+				SELECT 'success' AS message, '0' AS errCode;
+				COMMIT TRANSACTION
 			END
 	END TRY  
 	BEGIN CATCH
-		SELECT 'fail' AS message, '3' AS errCode;
+		SELECT 'fail' AS message, '2' AS errCode;
 		ROLLBACK
+	END CATCH;
+END
+GO
+
+
+-- Admin-----------------------------------------------------------------------
+CREATE PROC insertNewProduct
+@categoryID CHAR(6), @name NVARCHAR(50), @description VARCHAR(MAX), @image VARCHAR(MAX), @quantity INT, @price DECIMAL(10,2)
+AS
+BEGIN
+	DECLARE @nbProduct INT
+	SET @nbProduct = (SELECT COUNT(*) FROM Product WHERE categoryID = @categoryID) + 1;
+	
+	BEGIN TRY  
+		INSERT INTO Product (productID, categoryID, name, description, image, quantity, price)
+		VALUES (CONCAT(@categoryID, 'P', RIGHT(100+ @nbProduct,2)), @categoryID, @name, @description, @image, @quantity, @price);
+		IF @@ROWCOUNT = 0
+			THROW 50000, 'Failed insert new product', 1;
+		SELECT 'success' AS message, '0' AS errCode;
+	END TRY  
+	BEGIN CATCH  
+		SELECT 'fail' AS message, '1' AS errCode; 
+	END CATCH;
+END
+GO
+
+CREATE PROC updateOrderStatus
+@orderID INT, @status VARCHAR(20)
+AS
+BEGIN	
+	BEGIN TRY  
+
+        IF @status NOT IN ('processing', 'completed', 'cancelled')
+            BEGIN
+                SELECT 'invalid status' AS message, '1' AS errCode;
+                ROLLBACK
+            END
+
+		UPDATE Orders
+        SET orderStatus = @status
+        WHERE orderID = @orderID;
+
+        IF @@ROWCOUNT = 0
+			THROW 50000, 'Failed insert new product', 1;
+		SELECT 'success' AS message, '0' AS errCode;
+	END TRY  
+	BEGIN CATCH  
+		SELECT 'fail' AS message, '2' AS errCode; 
 	END CATCH;
 END
 GO
@@ -299,10 +286,36 @@ GO
 
 
 
--- CREATE PROC insertNewOrderUserInfo  --> use GETDATE()
--- CREATE PROC insertNewOrderCustomInfo
--- DROP PROC insertProductInfo
+-------------------------------------------------------------------------------
+-- NOT IMPLEMENTED YET
+-------------------------------------------------------------------------------
+
+-- Admin-----------------------------------------------------------------------
+-- CREATE PROC getAllCustomerInfo
+-- AS
+-- SELECT username, fullname, address, phone, email FROM Customer
 -- GO
+
+
+
+-- Customer-------------------------------------------------------------------
+-- CREATE PROC getAllOrderByUsername
+-- @username VARCHAR(30)
+-- AS
+-- SELECT * FROM Orders WHERE username = @username
+-- GO
+
+-- CREATE PROC getOrderDetailByID
+-- @orderID INT
+-- AS
+-- SELECT * 
+-- FROM Orders o JOIN OrderItem i ON o.orderID = i.orderID
+--      JOIN Product p ON i.productID = p.productID
+-- WHERE o.orderID = @orderID
+-- GO
+
+
+
 
 -- nếu xóa 1 product thì cập nhật kiểu gì?
 -- thêm 1 cột isdeleted vào product
