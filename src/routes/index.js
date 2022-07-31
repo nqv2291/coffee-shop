@@ -4,6 +4,31 @@ const { conn, sql } = require('../config/database');
 
 function route(app) {
 
+  app.get('/loadProduct', async (req, res) => {
+    var pool = await conn;
+    var sqlGetProduct = "SELECT productID, categoryID, name, price, quantity FROM Product";
+    
+    const getProduct = await pool.request()
+      .query(sqlGetProduct, function (err, data) {
+        console.log(data.recordset);
+        res.json(data.recordset);
+      });
+  });
+
+  app.post('/changeQuantity', async (req, res) => {
+    var pool = await conn;
+    var sqlUpdateProductQuantity = "EXEC updateProductQuantity @productID, @quantity";
+    
+    const updateProductQuantity = await pool.request()
+      .input('productID', sql.Char(9), req.body.productID)
+      .input('quantity', sql.Int, req.body.quantity)
+      .query(sqlUpdateProductQuantity, function (err, data) {
+        console.log(data.recordset);
+        res.json(data.recordset);
+      });
+  });
+
+
 
   app.post('/addOrder', async (req, res) => {
     var pool = await conn;
