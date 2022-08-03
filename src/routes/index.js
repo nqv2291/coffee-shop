@@ -4,6 +4,35 @@ const { conn, sql } = require('../config/database');
 
 function route(app) {
 
+  app.post('/getProductReviews', async (req, res) => {
+    var pool = await conn;
+    var sqlGetProductReviews = "EXEC getProductReviews @productID";
+    
+    const getProductReviews = await pool.request()
+      .input('productID', sql.Char(9), req.body.productID)
+      .query(sqlGetProductReviews, function (err, data) {
+        console.log(data.recordset);
+        res.json(data.recordset);
+      });
+  });
+  
+  app.post('/addReview', async (req, res) => {
+    var pool = await conn;
+    var sqlAddNewReview = "EXEC insertNewReview @orderItemID, @username, @comment, @rating";
+    
+    const addNewReview = await pool.request()
+      .input('orderItemID', sql.Int, req.body.orderItemID)
+      .input('username', sql.VarChar(30), req.body.username)
+      .input('comment', sql.VarChar(1000), req.body.comment)
+      .input('rating', sql.TinyInt, req.body.rating)
+      .query(sqlAddNewReview, function (err, data) {
+        console.log(data.recordset);
+        res.json(data.recordset);
+      });
+  });  
+
+  // ------------------------------------------------------------------------------------------------
+
   app.post('/loadUserOrders', async (req, res) => {
     var pool = await conn;
     var sqlGetOrders = "SELECT orderID, orderFullname, orderDate, totalPayment, orderStatus FROM Orders WHERE username = @username";
@@ -27,23 +56,6 @@ function route(app) {
       });
   });  
 
-  app.post('/addReview', async (req, res) => {
-    var pool = await conn;
-    var sqlAddNewReview = "EXEC insertNewReview @orderItemID, @username, @comment, @rating";
-    
-    const addNewReview = await pool.request()
-      .input('orderItemID', sql.Int, req.body.orderItemID)
-      .input('username', sql.VarChar(30), req.body.username)
-      .input('comment', sql.VarChar(1000), req.body.comment)
-      .input('rating', sql.TinyInt, req.body.rating)
-      .query(sqlAddNewReview, function (err, data) {
-        console.log(data.recordset);
-        res.json(data.recordset);
-      });
-  });  
-
-
-  // ------------------------------------------------------------------------------------------------
 
   app.get('/loadProduct', async (req, res) => {
     var pool = await conn;
