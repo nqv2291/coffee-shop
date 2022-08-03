@@ -282,6 +282,7 @@ BEGIN
 END
 GO
 
+
 CREATE PROC updateProductQuantity
 @productID CHAR(9), @quantity INT
 AS
@@ -294,8 +295,8 @@ BEGIN
                 ROLLBACK
             END
 
-		UPDATE Product
-        SET quantity = @quantity
+	    UPDATE Product
+        SET quantity = quantity + @quantity
         WHERE productID = @productID;
 
         IF @@ROWCOUNT = 0

@@ -4,6 +4,33 @@ const { conn, sql } = require('../config/database');
 
 function route(app) {
 
+  app.post('/loadUserOrders', async (req, res) => {
+    var pool = await conn;
+    var sqlGetOrders = "SELECT orderID, orderFullname, orderDate, totalPayment, orderStatus FROM Orders WHERE username = @username";
+    
+    const getOrders = await pool.request()
+      .input('username', sql.VarChar(30), req.body.username)
+      .query(sqlGetOrders, function (err, data) {
+        console.log(data.recordset);
+        res.json(data.recordset);
+      });
+  });
+
+  app.post('/loadOrderDetail', async (req, res) => {
+    var pool = await conn;
+    var sqlGetOrderDetail = "SELECT orderItemID, productID, quantity, totalPrice FROM OrderItem WHERE orderID = @orderID";
+    
+    const getOrderDetail = await pool.request()
+      .input('orderID', sql.Int, req.body.orderID)
+      .query(sqlGetOrderDetail, function (err, data) {
+        console.log(data.recordset);
+        res.json(data.recordset);
+      });
+  });  
+
+
+  // ------------------------------------------------------------------------------------------------
+
   app.get('/loadProduct', async (req, res) => {
     var pool = await conn;
     var sqlGetProduct = "SELECT productID, categoryID, name, price, quantity FROM Product";
