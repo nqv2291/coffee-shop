@@ -1,19 +1,15 @@
-
-CREATE PROC getAllSortedProducts
-@sortBy VARCHAR(30)
+CREATE TRIGGER tg_updateProductRating
+ON Review
+AFTER INSERT
 AS
 BEGIN
-	DECLARE @order CHAR(4), @criteria VARCHAR(30), @sqlQuery VARCHAR(1000);
-	SET @order = SUBSTRING(@sortBy, 1, 3);
-	SET @criteria = SUBSTRING(@sortBy, 5, 30);
-	SET @sqlQuery = 'SELECT productID, productName, image, quantity, price, rating, categoryID, categoryName, parentID
-					FROM vwProductCategory
-					ORDER BY ' + @criteria;
-	
-	IF @order = 'INC'
-		SET @sqlQuery = @sqlQuery + ' ASC';
-	ELSE IF @order = 'DEC'
-		SET @sqlQuery = @sqlQuery + ' DESC';
-	EXEC(@sqlQuery);
+	DECLARE @sum INT, @pid CHAR(9), @nbRating INT;
+	SET @pid = (SELECT productID FROM OrderItem WHERE orderItemID = (SELECT orderItemID FROM inserted));
+	SET @sum = ISNULL((SELECT SUM(rating) FROM Product WHERE productID = @pid), 0) + (SELECT star FROM inserted);
+	SET @nbRating = (SELECT COUNT(rating) FROM Product WHERE productID = @pid) + 1;
+
+	UPDATE Product
+	SET rating = @sum/@nbRating
+	WHERE productID = @pid;
 END
 GO
