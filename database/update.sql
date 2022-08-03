@@ -1,28 +1,30 @@
-DROP PROC updateProductQuantity
-GO
-
-CREATE PROC updateProductQuantity
-@productID CHAR(9), @quantity INT
+CREATE PROC insertNewReview
+@orderItemID INT, @username VARCHAR(30), @comment VARCHAR(1000), @rate TINYINT
 AS
-BEGIN	
-	BEGIN TRY  
+BEGIN
+	BEGIN TRANSACTION
+	BEGIN TRY
+		IF (@rate > 5) OR (@rate < 0)
+			BEGIN
+				SELECT 'incorrect rating' AS message, '1' AS errCode;
+				ROLLBACK
+			END
+		DECLARE @reviewID INT;
+		IF (SELECT COUNT(*) FROM review) = 0
+			SET @reviewID = 1
+		ELSE 
+			SET @reviewID = (SELECT MAX(reviewID) FROM review) + 1;		
+		INSERT INTO Review
+		VALUES (@reviewID, @orderItemID, @username, @comment, @rate);
 
-        IF @quantity < 0
-            BEGIN
-                SELECT 'invalid number' AS message, '1' AS errCode;
-                ROLLBACK
-            END
-
-	UPDATE Product
-        SET quantity = quantity + @quantity
-        WHERE productID = @productID;
-
-        IF @@ROWCOUNT = 0
-			THROW 50000, 'Failed update product quantity', 1;
+		IF @@ROWCOUNT = 0
+			THROW 50000, 'fail', 1;
 		SELECT 'success' AS message, '0' AS errCode;
+		COMMIT TRANSACTION
 	END TRY  
-	BEGIN CATCH  
-		SELECT 'fail' AS message, '2' AS errCode; 
+	BEGIN CATCH
+		SELECT 'fail' AS message, '3' AS errCode;
+		ROLLBACK
 	END CATCH;
 END
 GO

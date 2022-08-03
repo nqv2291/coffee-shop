@@ -28,6 +28,21 @@ function route(app) {
       });
   });  
 
+  app.post('/addReview', async (req, res) => {
+    var pool = await conn;
+    var sqlAddNewReview = "EXEC insertNewReview @orderItemID, @username, @comment, @rating";
+    
+    const addNewReview = await pool.request()
+      .input('orderItemID', sql.Int, req.body.orderItemID)
+      .input('username', sql.VarChar(30), req.body.username)
+      .input('comment', sql.VarChar(1000), req.body.comment)
+      .input('rating', sql.TinyInt, req.body.rating)
+      .query(sqlAddNewReview, function (err, data) {
+        console.log(data.recordset);
+        res.json(data.recordset);
+      });
+  });  
+
 
   // ------------------------------------------------------------------------------------------------
 

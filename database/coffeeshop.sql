@@ -235,6 +235,39 @@ END
 GO
 
 
+CREATE PROC insertNewReview
+@orderItemID INT, @username VARCHAR(30), @comment VARCHAR(1000), @rate TINYINT
+AS
+BEGIN
+	BEGIN TRANSACTION
+	BEGIN TRY
+		IF (@rate > 5) OR (@rate < 0)
+			BEGIN
+				SELECT 'incorrect rating' AS message, '1' AS errCode;
+				ROLLBACK
+			END
+		DECLARE @reviewID INT;
+		IF (SELECT COUNT(*) FROM review) = 0
+			SET @reviewID = 1
+		ELSE 
+			SET @reviewID = (SELECT MAX(reviewID) FROM review) + 1;		
+		INSERT INTO Review
+		VALUES (@reviewID, @orderItemID, @username, @comment, @rate);
+
+		IF @@ROWCOUNT = 0
+			THROW 50000, 'fail', 1;
+		SELECT 'success' AS message, '0' AS errCode;
+		COMMIT TRANSACTION
+	END TRY  
+	BEGIN CATCH
+		SELECT 'fail' AS message, '3' AS errCode;
+		ROLLBACK
+	END CATCH;
+END
+GO
+
+
+
 -- Admin-----------------------------------------------------------------------
 CREATE PROC insertNewProduct
 @categoryID CHAR(6), @name NVARCHAR(50), @description VARCHAR(MAX), @image VARCHAR(MAX), @quantity INT, @price DECIMAL(10,2)
