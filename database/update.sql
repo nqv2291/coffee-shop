@@ -1,3 +1,17 @@
+
+CREATE PROC getOrderItems
+@orderID INT
+AS
+BEGIN
+	SELECT o.orderItemID, o.productID, p.name, p.image, o.quantity, o.totalPrice 
+	FROM OrderItem o JOIN Product p ON o.productID = p.productID
+	WHERE orderID = @orderID;
+END
+GO
+
+DROP PROC IF EXISTS insertNewReview
+GO
+
 CREATE PROC insertNewReview
 @orderItemID INT, @username VARCHAR(30), @comment VARCHAR(1000), @rate TINYINT
 AS

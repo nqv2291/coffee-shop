@@ -18,8 +18,7 @@ function route(app) {
 
   app.post('/loadOrderDetail', async (req, res) => {
     var pool = await conn;
-    var sqlGetOrderDetail = "SELECT orderItemID, productID, quantity, totalPrice FROM OrderItem WHERE orderID = @orderID";
-    
+    var sqlGetOrderDetail = "EXEC getOrderItems @orderID";
     const getOrderDetail = await pool.request()
       .input('orderID', sql.Int, req.body.orderID)
       .query(sqlGetOrderDetail, function (err, data) {
