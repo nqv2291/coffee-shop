@@ -4,6 +4,18 @@ const { conn, sql } = require('../config/database');
 
 function route(app) {
 
+  app.post('/getAllSortedProduct', async (req, res) => {
+    var pool = await conn;
+    var sqlGetProduct = "EXEC getAllSortedProducts @sortBy";
+    
+    const getProduct = await pool.request()
+      .input('sortBy', sql.VarChar(30), req.body.sortBy)
+      .query(sqlGetProduct, function (err, data) {
+        console.log(data.recordset);
+        res.json(data.recordset);
+      });
+  });
+// ---------------------------------------------------------------------------------------------------------------------
   app.post('/getProductReviews', async (req, res) => {
     var pool = await conn;
     var sqlGetProductReviews = "EXEC getProductReviews @productID";
@@ -114,12 +126,12 @@ function route(app) {
 
   app.get('/manageOrder', async (req, res) => {
     var pool = await conn;
-    var sqlUpdateOrderStatus = "SELECT orderID, username, orderDate, totalPayment, orderStatus FROM Orders";
+    var sqlGetOrders = "SELECT orderID, username, orderDate, totalPayment, orderStatus FROM Orders ORDER BY orderID DESC";
     
-    const updateOrderStatus = await pool.request()
-      .query(sqlUpdateOrderStatus, function (err, data) {
+    const getOrders = await pool.request()
+      .query(sqlGetOrders, function (err, data) {
         console.log(data.recordset);
-        // res.json(data.recordset);
+        res.json(data.recordset);
       });
   });
 
