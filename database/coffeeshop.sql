@@ -330,6 +330,12 @@ BEGIN
 END
 GO
 
+CREATE PROC getTypeByCategory 
+@parentID CHAR(6)
+AS
+SELECT * FROM Category WHERE parentID = @parentID
+GO
+
 CREATE PROC updateOrderStatus
 @orderID INT, @status VARCHAR(20)
 AS
