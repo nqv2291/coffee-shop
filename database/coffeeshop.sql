@@ -139,7 +139,7 @@ GO
 CREATE PROC getProductByID
 @productID CHAR(9)
 AS
-SELECT productID, productName, description, image, quantity, price
+SELECT productID, productName, description, image, quantity, price, rating
 FROM vwProductCategory
 WHERE productID = @productID
 GO
@@ -223,7 +223,8 @@ BEGIN
     INSERT INTO Orders (orderID, username, orderFullname, orderAddress, orderPhone, orderEmail, orderMessage, orderDate, totalPayment)
     VALUES (@orderID, @username, @fullname, @address, @phone, @email, @message, GETDATE(), @totalPayment)
 
-    SELECT @orderID AS orderID, (MAX(orderItemID) + 1) AS baseOrderItemID
+	
+    SELECT @orderID AS orderID, (ISNULL(MAX(orderItemID), 0) + 1) AS baseOrderItemID
 	FROM OrderItem;
 END
 GO
